@@ -1,0 +1,174 @@
+1 | constantUsersPerSec(400) during (10 seconds) | actors 10 | rps 300k
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                      12001 (OK=3097   KO=8904  )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                   1079 (OK=121    KO=1079  )
+> mean response time                                     2 (OK=4      KO=2     )
+> std deviation                                         12 (OK=11     KO=12    )
+> response time 50th percentile                          1 (OK=2      KO=1     )
+> response time 75th percentile                          2 (OK=3      KO=2     )
+> response time 95th percentile                          7 (OK=15     KO=6     )
+> response time 99th percentile                         37 (OK=65     KO=26    )
+> mean requests/sec                                 1200.1 (OK=309.7  KO=890.4 )
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                          3097 ( 26%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                              8904 ( 74%)
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b   8903 (99.99%)
+ut actually found 404
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b      1 ( 0.01%)
+ut actually found 500
+================================================================================
+
+2 | constantUsersPerSec(400) during (10 seconds) | actors 5 | rps 300k
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                      12001 (OK=3155   KO=8846  )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                   1102 (OK=361    KO=1102  )
+> mean response time                                    16 (OK=29     KO=12    )
+> std deviation                                         42 (OK=61     KO=32    )
+> response time 50th percentile                          2 (OK=4      KO=2     )
+> response time 75th percentile                          6 (OK=8      KO=4     )
+> response time 95th percentile                        106 (OK=193    KO=76    )
+> response time 99th percentile                        216 (OK=256    KO=166   )
+> mean requests/sec                                 1200.1 (OK=315.5  KO=884.6 )
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                          3155 ( 26%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                              8846 ( 74%)
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b   8845 (99.99%)
+ut actually found 404
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b      1 ( 0.01%)
+ut actually found 500
+================================================================================
+
+3 | constantUsersPerSec(400) during (10 seconds) | actors 5 | rps 100k
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                      12001 (OK=3096   KO=8905  )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                   1080 (OK=127    KO=1080  )
+> mean response time                                     2 (OK=3      KO=1     )
+> std deviation                                         11 (OK=8      KO=12    )
+> response time 50th percentile                          1 (OK=2      KO=1     )
+> response time 75th percentile                          2 (OK=3      KO=2     )
+> response time 95th percentile                          6 (OK=10     KO=5     )
+> response time 99th percentile                         35 (OK=48     KO=26    )
+> mean requests/sec                                 1200.1 (OK=309.6  KO=890.5 )
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                          3096 ( 26%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                              8905 ( 74%)
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b   8904 (99.99%)
+ut actually found 404
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b      1 ( 0.01%)
+ut actually found 500
+================================================================================
+
+4 | constantUsersPerSec(200) during (10 seconds) | actors 5 | rps 100k
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                       8001 (OK=2100   KO=5901  )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                   1079 (OK=65     KO=1079  )
+> mean response time                                     1 (OK=2      KO=1     )
+> std deviation                                         12 (OK=4      KO=14    )
+> response time 50th percentile                          1 (OK=1      KO=1     )
+> response time 75th percentile                          2 (OK=2      KO=1     )
+> response time 95th percentile                          4 (OK=6      KO=4     )
+> response time 99th percentile                         17 (OK=24     KO=12    )
+> mean requests/sec                                727.364 (OK=190.909 KO=536.455)
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                          2100 ( 26%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                              5901 ( 74%)
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b   5900 (99.98%)
+ut actually found 404
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b      1 ( 0.02%)
+ut actually found 500
+================================================================================
+
+5 | constantUsersPerSec(200) during (10 seconds) | actors 5 | rps 1k
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                       8001 (OK=2095   KO=5906  )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                   1081 (OK=506    KO=1081  )
+> mean response time                                     5 (OK=14     KO=2     )
+> std deviation                                         39 (OK=63     KO=24    )
+> response time 50th percentile                          1 (OK=2      KO=1     )
+> response time 75th percentile                          2 (OK=2      KO=2     )
+> response time 95th percentile                          7 (OK=28     KO=6     )
+> response time 99th percentile                        161 (OK=405    KO=24    )
+> mean requests/sec                                727.364 (OK=190.455 KO=536.909)
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                          2095 ( 26%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                              5906 ( 74%)
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b   5905 (99.98%)
+ut actually found 404
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b      1 ( 0.02%)
+ut actually found 500
+================================================================================
+
+6 | constantUsersPerSec(40) during (10 seconds) | actors 5 | rps 1k
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                       1601 (OK=904    KO=697   )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                   1102 (OK=125    KO=1102  )
+> mean response time                                     2 (OK=2      KO=2     )
+> std deviation                                         28 (OK=6      KO=41    )
+> response time 50th percentile                          1 (OK=1      KO=1     )
+> response time 75th percentile                          2 (OK=2      KO=1     )
+> response time 95th percentile                          4 (OK=5      KO=3     )
+> response time 99th percentile                         19 (OK=26     KO=13    )
+> mean requests/sec                                145.545 (OK=82.182 KO=63.364)
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                           904 ( 56%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                               697 ( 44%)
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b    696 (99.86%)
+ut actually found 404
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b      1 ( 0.14%)
+ut actually found 500
+================================================================================
+
+7 | constantUsersPerSec(40) during (10 seconds) | actors 1 | rps 1k
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                       1601 (OK=899    KO=702   )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                   1077 (OK=13     KO=1077  )
+> mean response time                                     1 (OK=0      KO=2     )
+> std deviation                                         26 (OK=0      KO=40    )
+> response time 50th percentile                          1 (OK=1      KO=1     )
+> response time 75th percentile                          1 (OK=1      KO=1     )
+> response time 95th percentile                          2 (OK=2      KO=1     )
+> response time 99th percentile                          4 (OK=4      KO=3     )
+> mean requests/sec                                145.545 (OK=81.727 KO=63.818)
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                           899 ( 56%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                               702 ( 44%)
+---- Errors --------------------------------------------------------------------
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b    701 (99.86%)
+ut actually found 404
+> status.find.in(200,304,201,202,203,204,205,206,207,208,209), b      1 ( 0.14%)
+ut actually found 500
+================================================================================
