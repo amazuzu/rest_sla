@@ -45,7 +45,7 @@ class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaR
       Get("/sla") ~> thRouter.operations ~> check(responseAs[Sla] == Sla("", 10))
     }
 
-    "return error such after prevous successful call" in {
+    "return error such after previous successful call" in {
       expectAllowed(false)
       Get("/sla") ~> thRouter.operations ~> check(response.status == StatusCodes.NotFound)
     }

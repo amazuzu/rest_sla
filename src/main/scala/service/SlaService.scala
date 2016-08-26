@@ -26,11 +26,16 @@ final class SlaServiceImpl(val ctx: Context) extends SlaService {
 
 
   private def expensiveEval(sla: Sla) = Future {
+    //suppose magic number is allowed here
     Thread.sleep(20)
     sla
   }
 
   //expensive method
-  override def getSlaByToken(token: String) = expensiveEval(ctx.getSlaByToken(token).getOrElse(ctx.DefaultSla))
+  override def getSlaByToken(token: String) = ctx.getSlaByToken(token) match {
+    case Some(sla) => expensiveEval(sla)
+      //must throw exception since no-sla
+    case _ => Future.failed(new IllegalArgumentException(s"no sla found for token ${token}"))
+  }
 
 }

@@ -10,6 +10,7 @@ import spray.http.MediaTypes._
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.{HttpService, Route}
+import utils.Const
 
 /**
   * Created by taras.beletsky on 8/18/16.
@@ -58,7 +59,7 @@ class SlaThrottleRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFact
   def PostGraceRps = (path("graceRps") & post) {
     parameters('rps.as[Int]) { rps =>
 
-      if (rps >= 10) {
+      if (rps >= Const.MinRps) {
         ctx.updateGraceRps(rps)
         complete(OK)
       } else

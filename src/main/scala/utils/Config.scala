@@ -17,3 +17,22 @@ object Config {
   }
 
 }
+
+trait Const {
+
+  //how often to evaluate quotes
+  val QuotesPerSecond = 10.0
+
+  //quota time frame, milliseconds
+  val QuotaTimeFrame = 100L
+
+  //minimum of allowed rps
+  val MinRps = 10
+
+  //means not waiting for new quota
+  val NotBusy = 0L
+}
+
+object Const extends Const {
+
+}
