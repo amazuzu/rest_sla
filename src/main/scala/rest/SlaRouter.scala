@@ -9,6 +9,7 @@ import service.{Context, SlaServiceImpl}
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.{HttpService, Route}
+import utils.Const
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
@@ -20,7 +21,7 @@ import scala.util.{Failure, Success}
 @Api(value = "", description = "default sla impl")
 class SlaRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFactory) extends HttpService {
 
-  val slaService = new SlaServiceImpl(ctx)
+  val service = new SlaServiceImpl(ctx)
 
   val operations: Route = GetSla ~ PostUser
 
@@ -30,10 +31,10 @@ class SlaRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFactory) ext
     new ApiImplicitParam(name = "token", required = false, dataType = "string", paramType = "token", value = "user basic auth token")
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok"), new ApiResponse(code = 404, message = "NotFounds")))
-  def GetSla:Route = (path("sla") & get) {
+  def GetSla: Route = (path("sla") & get) {
     optionalHeaderValueByName("Authorization") { otoken =>
-      onComplete(slaService.getSlaByToken(otoken.getOrElse(""))) {
-        case Success(sla) => complete(sla)
+      onComplete(service.getSlaByToken(otoken.getOrElse(Const.EmptyUserToken))) {
+        case Success(sla) => complete(OK, sla)
         case Failure(ex) => complete(NotFound)
       }
     }
@@ -48,13 +49,13 @@ class SlaRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFactory) ext
 
   ))
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok")))
-  def PostUser:Route = (path("user") & post) {
+  def PostUser: Route = (path("user") & post) {
     parameters('name.as[String], 'password.as[String], 'rps.as[Int]) { (name, password, rps) =>
 
-      if (rps < 10 || name == "")
+      if (rps < Const.MinRps || name == "")
         complete(PreconditionFailed)
       else {
-        slaService.defineSla(name, password, rps)
+        service.defineSla(name, password, rps)
         complete(OK)
       }
     }

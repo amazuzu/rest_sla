@@ -35,7 +35,7 @@ class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaR
     RuleUnauthGrace
     "return error within 100ms interval" in {
       expectAllowed(false)
-      Get("/sla") ~> thRouter.operations ~> check(response.status == StatusCodes.NotFound)
+      Get("/sla") ~> thRouter.operations ~> check(response.status == StatusCodes.TooManyRequests)
     }
 
     "return sla after 100ms interval" in {
@@ -47,7 +47,7 @@ class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaR
 
     "return error such after previous successful call" in {
       expectAllowed(false)
-      Get("/sla") ~> thRouter.operations ~> check(response.status == StatusCodes.NotFound)
+      Get("/sla") ~> thRouter.operations ~> check(response.status == StatusCodes.TooManyRequests)
     }
 
     "configure GraceRps" in {
@@ -76,7 +76,7 @@ class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaR
 
       //sure 6 > 5 and request should fail
       expectAllowed(false)
-      Get("/sla") ~> thRouter.operations ~> check(response.status === StatusCodes.NotFound)
+      Get("/sla") ~> thRouter.operations ~> check(response.status === StatusCodes.TooManyRequests)
     }
 
     RuleTokenNoSla
@@ -85,7 +85,7 @@ class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaR
       //error
       expectAllowedAuth(false, "foo", "pwd")
       Get("/sla") ~> addCredentials(BasicHttpCredentials("foo", "pwd")) ~> thRouter.operations ~>
-        check(response.status === StatusCodes.NotFound)
+        check(response.status === StatusCodes.TooManyRequests)
 
       //wait till new quota
       Thread.sleep(100)
@@ -142,7 +142,7 @@ class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaR
 
       // 4 > 3 and request should fail
       expectAllowedAuth(false, "foo2", "pwd")
-      Get("/sla") ~> addCredentials(BasicHttpCredentials("foo2", "pwd")) ~> thRouter.operations ~> check(response.status === StatusCodes.NotFound)
+      Get("/sla") ~> addCredentials(BasicHttpCredentials("foo2", "pwd")) ~> thRouter.operations ~> check(response.status === StatusCodes.TooManyRequests)
     }
 
     RuleTokenSla

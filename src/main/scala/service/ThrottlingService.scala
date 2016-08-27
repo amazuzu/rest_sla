@@ -1,38 +1,67 @@
 package service
 
 import java.util.concurrent.atomic.AtomicReference
-
-import model._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
 import javax.annotation.concurrent.ThreadSafe
 
-import utils.Const
+import model._
+import spray.caching.{Cache, LruCache}
+import utils.{Const, Utils}
+
+import scala.collection.concurrent.TrieMap
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
+import scala.concurrent.duration._
 
 
 /**
   * Created by taras.beletsky on 8/18/16.
   */
 @ThreadSafe
-final class ThrottlingService(ctx: Context) {
+final class ThrottlingService(ctx: Context) extends TokenService with Const {
 
-  val slaService: SlaService = new SlaServiceImpl(ctx)
+  //private val cache: Cache[AtomicReference[UserReqInfo]] = LruCache(timeToLive = 10 seconds)
 
-  def isRequestAllowed(otoken: Option[String]): Boolean = otoken.flatMap(ctx.getCachedSlaByToken(_)).map(_.get().isRequestAllowed).getOrElse(false)
+  //todo allow threads to change map
+  //map username -> future[sla]
+  private val cacheMap = new TrieMap[String, AtomicReference[UserReqInfo]]
 
-  def getSlaByToken(token: String): Option[Sla] = ctx.getCachedSlaByToken(token) match {
+  private val slaService: SlaService = new SlaServiceImpl(ctx)
+
+  //default user quota
+  private val UnauthorizedUserInfo: AtomicReference[UserReqInfo] = new AtomicReference(UserReqInfo.from(Sla(EmptyUserName, MinRps)))
+
+
+  /*private def cachedOp(token: String): Future[Sla] = cache(token, () =>
+    slaService.getSlaByToken(token)
+  )*/
+
+
+  def getCachedSlaByToken(token: String) = if (token == "") Some(UnauthorizedUserInfo) else getByToken(token, cacheMap.get)
+
+
+  def updateGraceRps(rps: Int): Unit = UnauthorizedUserInfo.set(UserReqInfo.from(Sla(EmptyUserName, rps)))
+
+
+  def isRequestAllowed(otoken: Option[String]): Boolean = otoken.flatMap(getCachedSlaByToken(_)).map(_.get().isRequestAllowed).getOrElse(false)
+
+  private def addCachedSla(token: String, sla: Sla): Unit = {
+    tokenMap += token -> sla.userName
+    cacheMap += sla.userName -> new AtomicReference(UserReqInfo.from(sla))
+  }
+
+  def getSlaByToken(token: String): Option[Sla] = getCachedSlaByToken(token) match {
     case Some(userReqInfo) => getSla(userReqInfo)
     case _ =>
       //evaluate sla service and cache result
       slaService.getSlaByToken(token).onComplete {
-        case Success(sla) => ctx.addCachedSla(token, sla)
+        case Success(sla) => addCachedSla(token, sla)
         case Failure(ex) =>
         //slaService returns Future[Sla], means only way to say no-sla is to throw exception, but just skip it for now
         //throw ex
       }
 
-      getSlaByToken("")
+      getSlaByToken(EmptyUserToken)
   }
 
 
@@ -47,7 +76,7 @@ final class ThrottlingService(ctx: Context) {
         val current = atomicReqInfo.get()
 
         //not waiting for quota
-        if (current.busyTime == Const.NotBusy) {
+        if (current.busyTime == NotBusy) {
           if (current.calls > 1) {
             //have available calls
             if (atomicReqInfo.compareAndSet(current, current.copy(calls = current.calls - 1))) return Some(sla)
@@ -60,10 +89,10 @@ final class ThrottlingService(ctx: Context) {
         //waiting for quota
         else {
           //may be 100ms passed by
-          if (System.currentTimeMillis() - current.busyTime >= Const.QuotaTimeFrame) {
-            val calls = Math.ceil(sla.maxRps.toDouble / Const.QuotesPerSecond).toInt
+          if (System.currentTimeMillis() - current.busyTime >= QuotaTimeFrame) {
+            val calls = Math.ceil(sla.maxRps.toDouble / QuotesPerSecond).toInt
             if (calls > 1) {
-              if (atomicReqInfo.compareAndSet(current, current.copy(calls = calls - 1, busyTime = Const.NotBusy))) return Some(sla)
+              if (atomicReqInfo.compareAndSet(current, current.copy(calls = calls - 1, busyTime = NotBusy))) return Some(sla)
             } else {
               if (atomicReqInfo.compareAndSet(current, current.copy(calls = 0, busyTime = System.currentTimeMillis()))) return Some(sla)
             }
@@ -82,5 +111,12 @@ final class ThrottlingService(ctx: Context) {
   }
 
 
+  updateGraceRps(MinRps)
+
+  override def reset(): Unit = {
+    super.reset()
+    cacheMap.clear()
+    updateGraceRps(MinRps)
+  }
 }
 

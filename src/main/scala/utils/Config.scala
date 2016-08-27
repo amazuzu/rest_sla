@@ -31,6 +31,10 @@ trait Const {
 
   //means not waiting for new quota
   val NotBusy = 0L
+
+  val EmptyUserName = ""
+  
+  val EmptyUserToken = ""
 }
 
 object Const extends Const {

@@ -32,7 +32,10 @@ class ApiRouterActor(ctx: Context) extends Actor with HttpService with ActorLogg
 
   def receive = runRoute(slaRouter.operations ~ pathPrefix("throttle")(throttleSlaRouter.operations) ~ swaggerService.routes ~
     (path("reset") & get) { req =>
+      slaRouter.service.reset()
+      throttleSlaRouter.service.reset()
       ctx.reset()
+
       complete(StatusCodes.OK)
     } ~
     swaggerService.routes ~

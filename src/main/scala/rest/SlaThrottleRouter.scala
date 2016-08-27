@@ -18,7 +18,7 @@ import utils.Const
 @Api(value = "/throttle", description = "throttle sla impl")
 class SlaThrottleRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFactory) extends HttpService {
 
-  val slaThrottleService = new ThrottlingService(ctx)
+  val service = new ThrottlingService(ctx)
 
   val operations: Route = GetSla ~ GetAllowed ~ PostGraceRps
 
@@ -27,13 +27,13 @@ class SlaThrottleRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFact
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "token", required = false, dataType = "string", paramType = "token", value = "user basic auth token")
   ))
-  @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok"), new ApiResponse(code = 404, message = "NotFounds")))
+  @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok"), new ApiResponse(code = 429, message = "TooManyRequests")))
   def GetSla = (path("sla") & get) {
     optionalHeaderValueByName("Authorization") { otoken =>
       respondWithMediaType(`application/json`) {
-        slaThrottleService.getSlaByToken(otoken.getOrElse("")) match {
-          case Some(sla) => complete(sla)
-          case None => complete(NotFound)
+        service.getSlaByToken(otoken.getOrElse("")) match {
+          case Some(sla) => complete(OK, sla)
+          case None => complete(TooManyRequests)
         }
       }
     }
@@ -46,7 +46,7 @@ class SlaThrottleRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFact
   ))
   def GetAllowed = (path("allowed") & get) {
     optionalHeaderValueByName("Authorization") { otoken =>
-      complete("" + slaThrottleService.isRequestAllowed(otoken))
+      complete(OK, "" + service.isRequestAllowed(otoken))
     }
   }
 
@@ -60,7 +60,7 @@ class SlaThrottleRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFact
     parameters('rps.as[Int]) { rps =>
 
       if (rps >= Const.MinRps) {
-        ctx.updateGraceRps(rps)
+        service.updateGraceRps(rps)
         complete(OK)
       } else
         complete(PreconditionFailed)
