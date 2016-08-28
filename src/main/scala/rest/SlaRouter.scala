@@ -2,10 +2,11 @@ package rest
 
 import javax.ws.rs.Path
 
-import akka.actor.ActorRefFactory
+import akka.actor.{ActorRefFactory, ActorSystem}
 import com.wordnik.swagger.annotations._
 import model.Sla
-import service.{Context, SlaServiceImpl}
+import scaldi.{Injectable, Injector}
+import service.SlaService
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.{HttpService, Route}
@@ -19,9 +20,11 @@ import scala.util.{Failure, Success}
   */
 
 @Api(value = "", description = "default sla impl")
-class SlaRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFactory) extends HttpService {
+class SlaRouter(implicit val actorRefFactory: ActorRefFactory, inj: Injector) extends HttpService with Injectable {
 
-  val service = new SlaServiceImpl(ctx)
+  val system = inject[ActorSystem]
+
+  val service = inject[SlaService]
 
   val operations: Route = GetSla ~ PostUser
 

@@ -1,34 +1,32 @@
 package service
 
-import utils.Utils
+import utils.{Const, Utils}
 
 import scala.collection.concurrent.TrieMap
-import scala.concurrent.Future
 
 /**
   * Created by taras on 8/27/16.
   */
-trait TokenService {
+trait TokenService extends IReset {
 
   //map token -> username
-  protected val tokenMap = new TrieMap[String, String]
+  private val tokenMap = new TrieMap[String, String]
 
-  //get value by token, if fail then by extracted username
-  protected def getByToken[T](token: String, mapGet: String => Option[T]): Option[T] = tokenMap.get(token) match {
-    case Some(username) => mapGet(username)
-    case _ => Utils.decodeBase64BasicUsername(token) match {
-      case Some(username) => mapGet(username)
-      case _ => None
-    }
-  }
+  protected def getUsernameByToken(token: String): Option[String] =
+    if (token == Const.EmptyUserToken) throw new RuntimeException("empty token should be handled explicitly")
+    else
+      tokenMap.get(token) match {
+        case su@Some(username) => su
+        case _ => Utils.decodeBase64BasicUsername(token) match {
+          case su@Some(username) =>
+            //wont decode token next time
+            addToken(token, username)
+            su
+          case _ => None
+        }
+      }
 
-  protected def getUsernameByToken(token: String): Option[String] = tokenMap.get(token) match {
-    case su@Some(username) => su
-    case _ => Utils.decodeBase64BasicUsername(token) match {
-      case su@Some(username) => su
-      case _ => None
-    }
-  }
+  def addToken(token: String, username: String): Unit = tokenMap += token -> username
 
   def reset(): Unit = tokenMap.clear()
 }

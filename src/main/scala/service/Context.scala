@@ -1,10 +1,8 @@
 package service
 
-import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.concurrent.ThreadSafe
 
-import model.{Sla, UserReqInfo}
-import spray.caching.{Cache, LruCache}
+import model.Sla
 
 import scala.collection.concurrent.TrieMap
 
@@ -14,8 +12,7 @@ import scala.collection.concurrent.TrieMap
 
 //context as shared data storage among threads
 @ThreadSafe
-class Context {
-
+class Context extends IReset {
 
   //todo allow threads to change map
   //map username -> sla
@@ -27,5 +24,7 @@ class Context {
 
 }
 
-
+trait IReset {
+  def reset(): Unit
+}
 

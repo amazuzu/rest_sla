@@ -4,23 +4,22 @@ import akka.pattern.ask
 import akka.routing.RoundRobinPool
 import akka.util.Timeout
 import rest.ApiRouterActor
-import service.Context
+import scaldi.akka.AkkaInjectable
 import spray.can.Http
 import utils.Config._
 
 import scala.concurrent.duration._
 
 
-object Boot extends App {
+object Boot extends App with AkkaInjectable {
 
-  // we need an ActorSystem to host our application in
-  implicit val system = ActorSystem(app.systemName)
+  implicit val appModule = new BootModule
+
+  implicit val system = inject[ActorSystem]
 
   // parallel execution guarantee
-  val userActor: ActorRef = system.actorOf(Props(classOf[ApiRouterActor], new Context)
-    .withDispatcher("sla-dispatcher")
-    .withRouter(RoundRobinPool(nrOfInstances = 1))
-    , app.userServiceName)
+  val userActor: ActorRef = system.actorOf(injectActorProps[ApiRouterActor].withDispatcher("sla-dispatcher")
+    .withRouter(RoundRobinPool(nrOfInstances = 1)))
 
   implicit val timeout = Timeout(5.seconds)
 

@@ -3,6 +3,7 @@ package rest
 import akka.actor.{Actor, ActorLogging}
 import com.gettyimages.spray.swagger.SwaggerHttpService
 import com.wordnik.swagger.model.ApiInfo
+import scaldi.{Injectable, Injector}
 import service.Context
 import spray.http.StatusCodes
 import spray.routing.RejectionHandler.Default
@@ -13,13 +14,13 @@ import scala.reflect.runtime.universe._
 /**
   * Created by taras.beletsky on 8/18/16.
   */
-class ApiRouterActor(ctx: Context) extends Actor with HttpService with ActorLogging {
+class ApiRouterActor(implicit val inj:Injector) extends Actor with HttpService with ActorLogging with Injectable{
 
   implicit def actorRefFactory = context
 
-  val slaRouter = new SlaRouter(ctx)
-
-  val throttleSlaRouter = new SlaThrottleRouter(ctx)
+  val ctx = inject[Context]
+  val slaRouter = inject[SlaRouter]
+  val throttleSlaRouter = inject[SlaThrottleRouter]
 
   val swaggerService = new SwaggerHttpService {
     override def apiTypes = Seq(typeOf[SlaRouter], typeOf[SlaThrottleRouter])
@@ -30,7 +31,7 @@ class ApiRouterActor(ctx: Context) extends Actor with HttpService with ActorLogg
     override def apiInfo = Some(new ApiInfo("sla throttling service", "impl of sla service and its throttle version", "", "", "", ""))
   }
 
-  def receive = runRoute(slaRouter.operations ~ pathPrefix("throttle")(throttleSlaRouter.operations) ~ swaggerService.routes ~
+  def receive = runRoute(slaRouter.operations ~ pathPrefix("throttle")(throttleSlaRouter.operations) ~
     (path("reset") & get) { req =>
       slaRouter.service.reset()
       throttleSlaRouter.service.reset()

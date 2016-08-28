@@ -2,6 +2,7 @@ package rest
 
 import model.Sla
 import org.specs2.mutable.Specification
+import scaldi.Injectable
 import service.{Context, SlaRequirements}
 import spray.http.{BasicHttpCredentials, StatusCodes}
 import spray.httpx.SprayJsonSupport._
@@ -10,13 +11,15 @@ import spray.testkit.Specs2RouteTest
 /**
   * Created by taras.beletsky on 8/21/16.
   */
-class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaRequirements {
+class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaRequirements with Injectable {
+
+  implicit val testModule = new TestModule
 
   sequential
 
-  val ctx = new Context
-  val slaRouter = new SlaRouter(ctx)
-  val thRouter = new SlaThrottleRouter(ctx)
+  val ctx = inject[Context]
+  val slaRouter = inject[SlaRouter]
+  val thRouter = inject[SlaThrottleRouter]
 
   def expectAllowed(allowed: Boolean) = Get("/allowed") ~> thRouter.operations ~> check(responseAs[String] == allowed.toString)
 
@@ -112,7 +115,7 @@ class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaR
         check(responseAs[Sla] === Sla("", 10))
 
       //after expensive sla execution completed
-      Thread.sleep(300)
+      Thread.sleep(200)
 
       //return cached value
       expectAllowedAuth(true, "foo2", "pwd")
@@ -154,6 +157,5 @@ class SlaThrottleRouterSpec extends Specification with Specs2RouteTest with SlaR
       expectAllowedAuth(true, "foo2", "pwd2")
       Get("/sla") ~> addCredentials(BasicHttpCredentials("foo2", "pwd2")) ~> thRouter.operations ~> check(responseAs[Sla] === Sla("foo2", 30))
     }
-
   }
 }

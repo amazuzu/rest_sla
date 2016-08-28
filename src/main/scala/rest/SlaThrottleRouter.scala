@@ -5,7 +5,8 @@ import javax.ws.rs.Path
 import akka.actor.ActorRefFactory
 import com.wordnik.swagger.annotations._
 import model.Sla
-import service.{Context, ThrottlingService}
+import scaldi.{Injectable, Injector}
+import service.ThrottlingService
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport._
@@ -16,9 +17,9 @@ import utils.Const
   * Created by taras.beletsky on 8/18/16.
   */
 @Api(value = "/throttle", description = "throttle sla impl")
-class SlaThrottleRouter(ctx: Context)(implicit val actorRefFactory: ActorRefFactory) extends HttpService {
+class SlaThrottleRouter(implicit val actorRefFactory: ActorRefFactory, inj:Injector) extends HttpService with Injectable{
 
-  val service = new ThrottlingService(ctx)
+  val service = inject[ThrottlingService]
 
   val operations: Route = GetSla ~ GetAllowed ~ PostGraceRps
 

@@ -4,64 +4,56 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.concurrent.ThreadSafe
 
 import model._
-import spray.caching.{Cache, LruCache}
-import utils.{Const, Utils}
+import scaldi.{Injectable, Injector}
+import spray.caching._
+import utils.Const
 
-import scala.collection.concurrent.TrieMap
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 /**
   * Created by taras.beletsky on 8/18/16.
   */
 @ThreadSafe
-final class ThrottlingService(ctx: Context) extends TokenService with Const {
+final class ThrottlingService(implicit inj: Injector) extends TokenService with Const with Injectable {
 
-  //private val cache: Cache[AtomicReference[UserReqInfo]] = LruCache(timeToLive = 10 seconds)
+  private val cache: Cache[AtomicReference[UserReqInfo]] = LruCache(timeToLive = 10 seconds)
 
-  //todo allow threads to change map
-  //map username -> future[sla]
-  private val cacheMap = new TrieMap[String, AtomicReference[UserReqInfo]]
-
-  private val slaService: SlaService = new SlaServiceImpl(ctx)
+  private val slaService: SlaService = inject[SlaService]
 
   //default user quota
   private val UnauthorizedUserInfo: AtomicReference[UserReqInfo] = new AtomicReference(UserReqInfo.from(Sla(EmptyUserName, MinRps)))
 
 
-  /*private def cachedOp(token: String): Future[Sla] = cache(token, () =>
-    slaService.getSlaByToken(token)
-  )*/
+  private def askCache(token: String): Future[AtomicReference[UserReqInfo]] = getUsernameByToken(token).map { username =>
+    //crazy spray cache! w/o get() method it doesnt return completed future!
+    cache.get(username).getOrElse(cache(username) {
+      slaService.getSlaByToken(token).map(sla => new AtomicReference[UserReqInfo](UserReqInfo.from(sla)))
+    })
 
-
-  def getCachedSlaByToken(token: String) = if (token == "") Some(UnauthorizedUserInfo) else getByToken(token, cacheMap.get)
+  }.getOrElse(Future.successful(UnauthorizedUserInfo))
 
 
   def updateGraceRps(rps: Int): Unit = UnauthorizedUserInfo.set(UserReqInfo.from(Sla(EmptyUserName, rps)))
 
+  def isRequestAllowed(otoken: Option[String]): Boolean = otoken.flatMap(getReqInfoByToken(_)).map(_.get().isRequestAllowed).getOrElse(false)
 
-  def isRequestAllowed(otoken: Option[String]): Boolean = otoken.flatMap(getCachedSlaByToken(_)).map(_.get().isRequestAllowed).getOrElse(false)
+  def getSlaByToken(token: String): Option[Sla] = getReqInfoByToken(token).flatMap(getSla(_))
 
-  private def addCachedSla(token: String, sla: Sla): Unit = {
-    tokenMap += token -> sla.userName
-    cacheMap += sla.userName -> new AtomicReference(UserReqInfo.from(sla))
-  }
 
-  def getSlaByToken(token: String): Option[Sla] = getCachedSlaByToken(token) match {
-    case Some(userReqInfo) => getSla(userReqInfo)
-    case _ =>
-      //evaluate sla service and cache result
-      slaService.getSlaByToken(token).onComplete {
-        case Success(sla) => addCachedSla(token, sla)
-        case Failure(ex) =>
-        //slaService returns Future[Sla], means only way to say no-sla is to throw exception, but just skip it for now
-        //throw ex
+  private def getReqInfoByToken(token: String): Option[AtomicReference[UserReqInfo]] = {
+    if (token == EmptyUserToken) Some(UnauthorizedUserInfo)
+    else
+      askCache(token).value match {
+        case Some(Success(reqInfo)) => Some(reqInfo)
+        case Some(Failure(ex)) =>
+          //slaService returns Future[Sla], means only way to say no-sla is to throw exception, but just skip it for now
+          None
+        case None => Some(UnauthorizedUserInfo)
       }
-
-      getSlaByToken(EmptyUserToken)
   }
 
 
@@ -71,7 +63,6 @@ final class ThrottlingService(ctx: Context) extends TokenService with Const {
 
       //non blocking atomic mutation
       while (true) {
-
         //deal with concrete value, we expect unchanged for next some cpu cycles
         val current = atomicReqInfo.get()
 
@@ -110,13 +101,12 @@ final class ThrottlingService(ctx: Context) extends TokenService with Const {
     case None => None
   }
 
-
-  updateGraceRps(MinRps)
-
   override def reset(): Unit = {
     super.reset()
-    cacheMap.clear()
+    cache.clear()
     updateGraceRps(MinRps)
   }
+
+  updateGraceRps(MinRps)
 }
 

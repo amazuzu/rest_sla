@@ -16,6 +16,8 @@ libraryDependencies ++= {
     "org.specs2"          %%  "specs2-core"    % "2.3.11"      % "test",
     "com.typesafe.akka"   %%  "akka-actor"     % akkaVersion,
     "com.typesafe.akka"   %%  "akka-testkit"   % akkaVersion   % "test",
+    "org.scaldi"          %%  "scaldi"         % "0.5.7" withSources(),
+    "org.scaldi"          %%  "scaldi-akka"    % "0.5.7" withSources(),
     "ch.qos.logback" % "logback-classic" % "1.1.3",
     "org.slf4j" % "slf4j-nop" % "1.6.4",
     "com.typesafe"         %  "config"         % "1.2.1",
