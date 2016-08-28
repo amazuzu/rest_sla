@@ -1,0 +1,54 @@
+gatling load test results
+
+testing conf looks following
+users N = 10 | seconds T = 10 | request/second K = 500 | T*N*K = 50000
+
+result of sla testing
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                      85084 (OK=84084  KO=1000  )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                    101 (OK=101    KO=88    )
+> mean response time                                     3 (OK=3      KO=5     )
+> std deviation                                          4 (OK=4      KO=5     )
+> response time 50th percentile                          2 (OK=2      KO=4     )
+> response time 75th percentile                          5 (OK=5      KO=6     )
+> response time 95th percentile                         10 (OK=10     KO=13    )
+> response time 99th percentile                         24 (OK=24     KO=28    )
+> mean requests/sec                                 8508.4 (OK=8408.4 KO=100   )
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                         84084 ( 99%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                              1000 (  1%)
+---- Errors --------------------------------------------------------------------
+> status.find.is(200), but actually found 404                      1000 (100.0%)
+================================================================================
+
+result of throttle sla testing
+================================================================================
+---- Global Information --------------------------------------------------------
+> request count                                      62713 (OK=49609  KO=13104 )
+> min response time                                      0 (OK=0      KO=0     )
+> max response time                                     76 (OK=76     KO=63    )
+> mean response time                                     7 (OK=7      KO=7     )
+> std deviation                                          6 (OK=7      KO=6     )
+> response time 50th percentile                          6 (OK=6      KO=5     )
+> response time 75th percentile                          9 (OK=9      KO=8     )
+> response time 95th percentile                         19 (OK=19     KO=17    )
+> response time 99th percentile                         40 (OK=40     KO=37    )
+> mean requests/sec                                5701.182 (OK=4509.909 KO=1191.273)
+---- Response Time Distribution ------------------------------------------------
+> t < 800 ms                                         49609 ( 79%)
+> 800 ms < t < 1200 ms                                   0 (  0%)
+> t > 1200 ms                                            0 (  0%)
+> failed                                             13104 ( 21%)
+---- Errors --------------------------------------------------------------------
+> status.find.is(200), but actually found 429                     13104 (100.0%)
+================================================================================
+
+conclusion
+
+ * almost all (99%) of sla request are succeeded
+ * 49609 < 50000 so throttling works
+ * sla rps is higher 8500 > 5700 then throttled sla

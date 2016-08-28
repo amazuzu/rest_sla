@@ -18,7 +18,7 @@ object Boot extends App with AkkaInjectable {
   implicit val system = inject[ActorSystem]
 
   // parallel execution guarantee
-  val userActor: ActorRef = system.actorOf(injectActorProps[ApiRouterActor].withDispatcher("sla-dispatcher")
+  val userActor: ActorRef = system.actorOf(injectActorProps[ApiRouterActor].withDispatcher("sla-pinned-dispatcher")
     .withRouter(RoundRobinPool(nrOfInstances = 1)))
 
   implicit val timeout = Timeout(5.seconds)

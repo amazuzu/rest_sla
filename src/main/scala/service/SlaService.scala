@@ -2,6 +2,7 @@ package service
 
 import javax.annotation.concurrent.ThreadSafe
 
+import akka.actor.ActorSystem
 import model.Sla
 import scaldi.{Injectable, Injector}
 import utils.Utils
@@ -24,6 +25,9 @@ final class SlaServiceImpl(implicit inj:Injector) extends SlaService with TokenS
 
   private val ctx = inject[Context]
 
+  val system = inject[ActorSystem]
+  implicitly(system.dispatcher)
+
   def defineSla(username: String, password: String, rps: Int): Unit = {
     val token = Utils.encodeBasicToken(username, password)
     addToken(token, username)
@@ -32,7 +36,7 @@ final class SlaServiceImpl(implicit inj:Injector) extends SlaService with TokenS
 
   private def expensiveEval(sla: Sla) = Future {
     //suppose magic number is allowed here
-    Thread.sleep(20)
+    //Thread.sleep(20)
     sla
   }
 

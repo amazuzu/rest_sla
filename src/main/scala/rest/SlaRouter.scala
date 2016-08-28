@@ -36,7 +36,7 @@ class SlaRouter(implicit val actorRefFactory: ActorRefFactory, inj: Injector) ex
   @ApiResponses(Array(new ApiResponse(code = 200, message = "Ok"), new ApiResponse(code = 404, message = "NotFounds")))
   def GetSla: Route = (path("sla") & get) {
     optionalHeaderValueByName("Authorization") { otoken =>
-      onComplete(service.getSlaByToken(otoken.getOrElse(Const.EmptyUserToken))) {
+      onComplete(service.getSlaByToken(otoken.getOrElse("test token"))) {
         case Success(sla) => complete(OK, sla)
         case Failure(ex) => complete(NotFound)
       }
